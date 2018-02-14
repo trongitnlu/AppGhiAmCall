@@ -1,5 +1,7 @@
 package com.example.mypc.ghiamphone;
 
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -10,6 +12,7 @@ import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.app.NotificationCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -90,7 +93,8 @@ public class PhoneStatReceiver extends BroadcastReceiver {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    Toast.makeText(context, "Outgoing Call Started" , Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(context, "Outgoing Call Started" , Toast.LENGTH_SHORT).show();
+                    
                 }
 
                 break;
@@ -126,7 +130,8 @@ public class PhoneStatReceiver extends BroadcastReceiver {
         try {
             audiofile = File.createTempFile(status+"-"+phone+"-", ".3gp", dir);
         } catch (IOException e) {
-            Log.e(TAG, "external storage access error");
+//            Log.e(TAG, "external storage access error");
+            Toast.makeText(intent, "Bộ nhớ không đủ!", Toast.LENGTH_SHORT).show();
             return;
         }
 //Creating MediaRecorder and specifying audio source, output format, encoder & output format
@@ -144,6 +149,26 @@ public class PhoneStatReceiver extends BroadcastReceiver {
 //stopping recorder
         recorder.stop();
         recorder.release();
+//        Toast.makeText(intent, "Đã lưu cuộc gọi!", Toast.LENGTH_SHORT).show();
 //after stopping the recorder, create the sound file and add it to media library.
+        notifyThis("Thông báo", "Đã lưu thành công cuộc gọi!");
+    }
+    public void notifyThis(String title, String message) {
+        NotificationCompat.Builder b = new NotificationCompat.Builder(intent);
+        b.setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setWhen(System.currentTimeMillis())
+                .setSmallIcon(R.drawable.url)
+                .setTicker("Lưu thành công...")
+                .setContentTitle(title)
+                .setContentText(message)
+                .setContentInfo("App ghi âm");
+
+        Intent startMyActivity = new Intent(intent, MainActivity.class);
+        PendingIntent myIntent = PendingIntent.getActivity(intent, 1, startMyActivity, 0);
+        b.setContentIntent(myIntent);
+
+        NotificationManager nm = (NotificationManager) intent.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(1, b.build());
     }
 }
